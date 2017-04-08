@@ -29,61 +29,84 @@ class Player:
 
 class Mistontli:
     """Main logic class. Has the game flow and auxiliary methods for the game."""
-    board = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']]
-    number_of_moves = 9
-    current_player = None
+    board = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+
+    def __init__(self):
+        self.first_player = None
+        self.second_player = None
+        self.current_player = None
+        self.active_game = True
+
+    def _determine_winning(self, letter):
+        return ((self.board[0] == letter and self.board[1] == letter and
+                 self.board[2] == letter) or  # Top
+                (self.board[3] == letter and self.board[4] == letter and
+                 self.board[5] == letter) or  # Middle
+                (self.board[6] == letter and self.board[7] == letter and
+                 self.board[8] == letter) or  # Bottom
+                (self.board[0] == letter and self.board[3] == letter and
+                 self.board[6] == letter) or  # Left
+                (self.board[1] == letter and self.board[4] == letter and
+                 self.board[7] == letter) or  # Center
+                (self.board[2] == letter and self.board[5] == letter and
+                 self.board[8] == letter) or  # Right
+                (self.board[0] == letter and self.board[4] == letter and
+                 self.board[8] == letter) or  # Diagonal Left-Right
+                (self.board[2] == letter and self.board[4] == letter and
+                 self.board[6] == letter)  # Diagonal Right-Left
+                )
 
     def _show_board(self):
-        # TODO: Refactor this method, it could probably be less convoluted.
-        for line in self.board:
-            print('|', end='')
-            for square in line:
-                print(square, end='|')
-            print('\n - - -')
+        print(' - - -')
+        for i, cell in enumerate(self.board):
+            print('|{}'.format(cell), end='')
+            if i % 3 == 2:
+                print('|\n - - -')
+        print('')
 
     def _get_move(self, player):
         """Given a player, asks for a possible board move."""
 
-        # TODO: This could be improved with a more robust way to determine if the
-        # move is a legal one (not repeated or out of bounds).
-        move = input('{} pick your move (Enter the number of the square to play): '.format(player.name))
-        move = int(move)
+        move = input('{} pick your move (1 - 9): '.format(player.name))
 
-        if move <= 3:
-            self.board[0][(move % 3) - 1] = player.symbol
-        elif move >= 7:
-            self.board[2][(move % 3) - 1] = player.symbol
+        try:
+            move = int(move)
+        except ValueError:
+            print('You should enter a number between 1 and 9')
+            return self._get_move(player)
+
+        if self.board[move - 1] == ' ':
+            self.board[move - 1] = player.symbol
         else:
-            self.board[1][(move % 3) - 1] = player.symbol
+            print('That cell is already filled!')
+            return self._get_move(player)
 
-        self.number_of_moves -= 1
+    def _prepare_game(self):
+        self.first_player, self.second_player = Player.players_creator()
+        self.current_player = self.first_player if self.first_player.symbol == 'X' else self.second_player
+
+    def _game_step(self):
+        self._show_board()
+        self._get_move(self.current_player)
+
+        if self._determine_winning(self.current_player.symbol):
+            self.active_game = False
+            return
+
+        self.current_player = self.second_player if self.current_player is self.first_player else self.first_player
 
     def start_game(self):
-        # TODO: Refactor all of this into auxiliary methods. Auxiliary methods
-        # should be so decoupled that you could change the start_game loop for
-        # something else, like a GUI.
         print('Welcome to Mistontli!')
+        self._prepare_game()
+        print('{} you play with {}'.format(self.first_player.name, self.first_player.symbol))
+        print('{} you play with {}'.format(self.second_player.name, self.second_player.symbol))
+        print('{} you go first'.format(self.current_player.name))
 
-        first_player, second_player = Player.players_creator()
+        while self.active_game:
+            self._game_step()
 
-        print('Welcome {} and {}!'.format(first_player.name, second_player.name))
-        print('{} you play with {}'.format(first_player.name, first_player.symbol))
-        print('{} you play with {}'.format(second_player.name, second_player.symbol))
-
-        current_player = first_player if first_player.symbol == 'X' else second_player
-
-        print('{} you go first'.format(current_player.name))
-
-        while self.number_of_moves > 0:
-            self._show_board()
-            self._get_move(current_player)
-
-            current_player = second_player if current_player is first_player else first_player
-
-        # TODO: Think of a way to remove the need of calling the _show_board out
-        # of the main loop.
         self._show_board()
-
+        print('{} you win!'.format(self.current_player.name))
         print('Game has finished. Thanks for playing!')
 
 
