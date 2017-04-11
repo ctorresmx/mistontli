@@ -46,7 +46,7 @@ class ClassicAIPlayer(Player):
                 board_copy = copy.deepcopy(board)
                 board_copy[i] = self.symbol
 
-                if Mistontli.determine_winning(self.symbol, board_copy):
+                if Mistontli._determine_winning(self.symbol, board_copy):
                     return i
 
         # Tries to block the player
@@ -55,7 +55,7 @@ class ClassicAIPlayer(Player):
                 board_copy = copy.deepcopy(board)
                 board_copy[i] = self.opponents_symbol()
 
-                if Mistontli.determine_winning(self.opponents_symbol(), board_copy):
+                if Mistontli._determine_winning(self.opponents_symbol(), board_copy):
                     return i
 
         # Tries the corners randomly
@@ -103,21 +103,21 @@ class Mistontli:
     """Main logic class. Has the game flow and auxiliary methods for the game."""
 
     def __init__(self):
-        self.first_player = None
-        self.second_player = None
-        self.current_player = None
-        self.active_game = True
-        self.winner = None
-        self.board = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+        self._first_player = None
+        self._second_player = None
+        self._current_player = None
+        self._active_game = True
+        self._winner = None
+        self._board = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 
         # TODO: Investigate if this can be a class variable and point to
         # these functions.
-        self.game_modes = {'vs': self._prepare_2_player_game,
-                           'classicAI': self._prepare_classical_ai_game,
-                           }
+        self._game_modes = {'vs': self._prepare_2_player_game,
+                            'classicAI': self._prepare_classical_ai_game,
+                            }
 
     @staticmethod
-    def determine_winning(letter, board):
+    def _determine_winning(letter, board):
         return ((board[0] == letter and board[1] == letter and
                  board[2] == letter) or  # Top
                 (board[3] == letter and board[4] == letter and
@@ -138,7 +138,7 @@ class Mistontli:
 
     def _show_board(self):
         print(' - - -')
-        for i, cell in enumerate(self.board):
+        for i, cell in enumerate(self._board):
             print('|{}'.format(cell), end='')
             if i % 3 == 2:
                 print('|\n - - -')
@@ -153,14 +153,14 @@ class Mistontli:
         first_player_symbol = Player.symbols[coin_toss]
         second_player_symbol = Player.symbols[abs(1 - coin_toss)]
 
-        self.first_player = HumanPlayer(first_player_name, first_player_symbol)
-        self.second_player = HumanPlayer(second_player_name, second_player_symbol)
+        self._first_player = HumanPlayer(first_player_name, first_player_symbol)
+        self._second_player = HumanPlayer(second_player_name, second_player_symbol)
 
-        self.current_player = self.first_player if self.first_player.symbol == 'X' else self.second_player
+        self._current_player = self._first_player if self._first_player.symbol == 'X' else self._second_player
 
-        print('{} you play with {}'.format(self.first_player.name, self.first_player.symbol))
-        print('{} you play with {}'.format(self.second_player.name, self.second_player.symbol))
-        print('{} you go first'.format(self.current_player.name))
+        print('{} you play with {}'.format(self._first_player.name, self._first_player.symbol))
+        print('{} you play with {}'.format(self._second_player.name, self._second_player.symbol))
+        print('{} you go first'.format(self._current_player.name))
 
     def _prepare_classical_ai_game(self):
         """Creates a human player and a classicAI player. Randomly assigns a playable symbol."""
@@ -170,42 +170,42 @@ class Mistontli:
         player_symbol = Player.symbols[coin_toss]
         computer_symbol = Player.symbols[abs(1 - coin_toss)]
 
-        self.first_player = HumanPlayer(player_name, player_symbol)
-        self.second_player = ClassicAIPlayer('Mistontli', computer_symbol)
+        self._first_player = HumanPlayer(player_name, player_symbol)
+        self._second_player = ClassicAIPlayer('Mistontli', computer_symbol)
 
-        self.current_player = self.first_player
+        self._current_player = self._first_player
 
-        print('{} you play with {}'.format(self.first_player.name, self.first_player.symbol))
-        print('I will play with {}'.format(self.second_player.name, self.second_player.symbol))
-        print('You go first'.format(self.first_player.name))
+        print('{} you play with {}'.format(self._first_player.name, self._first_player.symbol))
+        print('I will play with {}'.format(self._second_player.name, self._second_player.symbol))
+        print('You go first'.format(self._first_player.name))
 
     def _game_step(self):
         self._show_board()
-        move = self.current_player.get_move(self.board)
+        move = self._current_player.get_move(self._board)
 
-        self.board[move] = self.current_player.symbol
+        self._board[move] = self._current_player.symbol
 
-        if Mistontli.determine_winning(self.current_player.symbol, self.board):
-            self.active_game = False
-            self.winner = True
+        if Mistontli._determine_winning(self._current_player.symbol, self._board):
+            self._active_game = False
+            self._winner = True
             return
 
-        if ' ' not in self.board:
-            self.active_game = False
+        if ' ' not in self._board:
+            self._active_game = False
 
-        self.current_player = self.second_player if self.current_player is self.first_player else self.first_player
+        self._current_player = self._second_player if self._current_player is self._first_player else self._first_player
 
     def start_game(self, mode='vs'):
         print('Welcome to Mistontli!')
         print('You are going to play in {} mode'.format(mode))
-        self.game_modes[mode]()
+        self._game_modes[mode]()
 
-        while self.active_game:
+        while self._active_game:
             self._game_step()
 
         self._show_board()
-        if self.winner:
-            print('{} you win!'.format(self.current_player.name))
+        if self._winner:
+            print('{} you win!'.format(self._current_player.name))
         else:
             print('Draw!')
 
